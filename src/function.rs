@@ -155,15 +155,13 @@ pub enum FunctionAttribute {
 
 /// Handle to a global kernel function.
 #[derive(Debug)]
-pub struct Function<'a> {
+pub struct Function {
     inner: CUfunction,
-    module: PhantomData<&'a Module>,
 }
-impl<'a> Function<'a> {
-    pub(crate) fn new(inner: CUfunction, _module: &Module) -> Function {
+impl Function {
+    pub(crate) fn new(inner: CUfunction) -> Function {
         Function {
             inner,
-            module: PhantomData,
         }
     }
 

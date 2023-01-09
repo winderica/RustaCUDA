@@ -49,6 +49,20 @@ impl Module {
         }
     }
 
+    pub fn load_from_bytes(image: &[u8]) -> CudaResult<Module> {
+        unsafe {
+            let mut module = Module {
+                inner: ptr::null_mut(),
+            };
+            cuda_driver_sys::cuModuleLoadData(
+                &mut module.inner as *mut cuda_driver_sys::CUmodule,
+                image.as_ptr() as *const c_void,
+            )
+            .to_result()?;
+            Ok(module)
+        }
+    }
+
     /// Load a module from a CStr.
     ///
     /// This is useful in combination with `include_str!`, to include the device code into the
@@ -152,7 +166,7 @@ impl Module {
     /// # Ok(())
     /// # }
     /// ```
-    pub fn get_function<'a>(&'a self, name: &CStr) -> CudaResult<Function<'a>> {
+    pub fn get_function<'a>(&'a self, name: &CStr) -> CudaResult<Function> {
         unsafe {
             let mut func: cuda_driver_sys::CUfunction = ptr::null_mut();
 
@@ -162,7 +176,7 @@ impl Module {
                 name.as_ptr(),
             )
             .to_result()?;
-            Ok(Function::new(func, self))
+            Ok(Function::new(func))
         }
     }
 

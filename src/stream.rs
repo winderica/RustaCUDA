@@ -10,7 +10,7 @@
 //! are not currently supported by RustaCUDA. Finally, the host can wait for all work scheduled in
 //! a stream to be completed.
 
-use crate::error::{CudaResult, DropResult, ToResult};
+use crate::error::{CudaError, CudaResult, DropResult, ToResult};
 use crate::event::Event;
 use crate::function::{BlockSize, Function, GridSize};
 use cuda_driver_sys::{cudaError_enum, CUstream};
@@ -221,6 +221,16 @@ impl Stream {
     /// ```
     pub fn synchronize(&self) -> CudaResult<()> {
         unsafe { cuda_driver_sys::cuStreamSynchronize(self.inner).to_result() }
+    }
+
+    pub fn query(&self) -> CudaResult<bool> {
+        unsafe {
+            match cuda_driver_sys::cuStreamQuery(self.inner).to_result() {
+                Ok(_) => Ok(true),
+                Err(CudaError::NotReady) => Ok(false),
+                Err(e) => Err(e),
+            }
+        }
     }
 
     /// Make the stream wait on an event.
